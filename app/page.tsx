@@ -69,7 +69,13 @@ export default function BrackyWithESPNOdds() {
               };
 
               // Fetch ESPN odds for this market
-              if (category === "nba" || category === "nfl") {
+              // Fetch ESPN odds for this market
+              if (
+                category === "nba" ||
+                category === "nfl" ||
+                category === "european-football" ||
+                category === "soccer"
+              ) {
                 fetchESPNOdds(m, category);
               }
             }
@@ -103,8 +109,18 @@ export default function BrackyWithESPNOdds() {
   const fetchESPNOdds = async (market: Market, category: string) => {
     setLoadingOdds(true);
     try {
-      // ESPN API endpoints - different for NBA vs NFL
-      const sport = category === "nba" ? "basketball/nba" : "football/nfl";
+      // ESPN API endpoints - different for NBA, NFL, and Soccer
+      let sport;
+      if (category === "nba") {
+        sport = "basketball/nba";
+      } else if (category === "nfl") {
+        sport = "football/nfl";
+      } else if (category === "european-football" || category === "soccer") {
+        sport = "soccer/ita.super_cup"; // Italian Serie A - can also use "uefa.champions", "usa.1" (MLS), etc.
+      } else {
+        return; // Skip unsupported sports
+      }
+
       const scoreboard = await fetch(
         `https://site.api.espn.com/apis/site/v2/sports/${sport}/scoreboard`
       );
