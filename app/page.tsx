@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Outcome = {
   slug: string;
@@ -40,6 +40,7 @@ type GroupedMarkets = {
 export default function BrackyWithESPNOdds() {
   const [markets, setMarkets] = useState<GroupedMarkets>({});
   const [loadingOdds, setLoadingOdds] = useState(false);
+  const fetchedMarketsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const es = new EventSource("/api/stream");
@@ -47,7 +48,9 @@ export default function BrackyWithESPNOdds() {
     es.addEventListener("update", (e) => {
       try {
         const payload = JSON.parse(e.data);
+        // console.log("Received payload:", payload); // Log the received payload
         const updates = payload.updates ?? [];
+        // console.log("Received update:", updates);
 
         setMarkets((prev) => {
           const next = structuredClone(prev);
@@ -74,9 +77,15 @@ export default function BrackyWithESPNOdds() {
                 category === "nba" ||
                 category === "nfl" ||
                 category === "european-football" ||
+                category === "ncaa-football" ||
+                category === "mls" ||
+                category === "ncaa-basketball" ||
                 category === "soccer"
               ) {
-                fetchESPNOdds(m, category);
+                if (!fetchedMarketsRef.current.has(m.slug)) {
+                  fetchedMarketsRef.current.add(m.slug);
+                  fetchESPNOdds(m, category);
+                }
               }
             }
 
@@ -109,14 +118,20 @@ export default function BrackyWithESPNOdds() {
   const fetchESPNOdds = async (market: Market, category: string) => {
     setLoadingOdds(true);
     try {
-      // ESPN API endpoints - different for NBA, NFL, and Soccer
+      // ESPN API endpoints - different for each sport
       let sport;
       if (category === "nba") {
         sport = "basketball/nba";
       } else if (category === "nfl") {
         sport = "football/nfl";
+      } else if (category === "ncaa-football") {
+        sport = "football/college-football/";
+      } else if (category === "ncaa-basketball") {
+        sport = "basketball/mens-college-basketball";
+      } else if (category === "mls") {
+        sport = "soccer/usa.1";
       } else if (category === "european-football" || category === "soccer") {
-        sport = "soccer/ita.super_cup"; // Italian Serie A - can also use "uefa.champions", "usa.1" (MLS), etc.
+        sport = "soccer/ita.super_cup";
       } else {
         return; // Skip unsupported sports
       }
@@ -133,17 +148,34 @@ export default function BrackyWithESPNOdds() {
 
         // Clean up Bracky market name (remove broadcast info in parens)
         const brackyName = market.name
-          .replace(/\([^)]*\)/, "")
+          .replace(/\([^)]*\)/g, "") // remove (anything)
+          .replace(/#\d+/g, "") // remove #number
           .trim()
           .toLowerCase();
 
         // Try to match by event name first
         if (eventName && brackyName) {
+          const normalizeName = (name: string) =>
+            name
+              .toLowerCase()
+              .replace(/\([^)]*\)/g, "")
+              .replace(/#\d+/g, "")
+              .replace(/🇦-🇿/g, "") // remove flags (emoji range)
+              .replace(/[^\w\s]/g, " ") // remove punctuation
+              .replace(/\b(fc|cf|sc|afc|club|calcio|ac)\b/g, "")
+              .replace(/\b\d{4}\b/g, "") // remove 1909, 1899, etc
+              .replace(/\s+/g, " ")
+              .trim();
+
           // Extract team names from both
-          const espnTeams = eventName
-            .split(" at ")
-            .map((t: string) => t.trim());
-          const brackyParts = brackyName.split(" at ");
+          const splitTeams = (name: string) => name.split(/\s+(?:at|vs|v)\s+/);
+
+          const espnTeams = splitTeams(
+            normalizeName(e.name ?? e.shortName ?? "")
+          );
+          const brackyParts = splitTeams(normalizeName(market.name));
+          // console.log("ESPN Teams:", espnTeams);
+          // console.log("Bracky Parts:", brackyParts);
 
           if (espnTeams.length === 2 && brackyParts.length === 2) {
             // Check if both team names match (in either order)
