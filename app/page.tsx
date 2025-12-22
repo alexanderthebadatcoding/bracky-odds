@@ -30,6 +30,7 @@ type Market = {
   groupSlug?: string | null;
   isThreadMarket?: boolean;
   isMatchup?: boolean;
+  espnStatus?: string;
 };
 
 type GroupedMarkets = {
@@ -202,11 +203,14 @@ export default function BrackyWithESPNOdds() {
       if (event && event.competitions?.[0]?.odds?.[0]) {
         const oddsData = event.competitions[0].odds[0];
         const competitors = event.competitions[0].competitors;
+        const statusDetail = event.status?.type?.detail;
 
         setMarkets((prev) => {
           const next = structuredClone(prev);
           const m = next[category]?.[market.slug];
           if (!m?.outcomes) return next;
+
+          if (statusDetail) m.espnStatus = statusDetail;
 
           // Match outcomes to ESPN competitors
           Object.values(m.outcomes).forEach((outcome) => {
@@ -321,7 +325,7 @@ export default function BrackyWithESPNOdds() {
                       marginBottom: 8,
                     }}
                   >
-                    {m.name}
+                    {m.name.replace(/\s*\([^)]*\)/g, "").trim()}
                   </h3>
 
                   <div
@@ -332,7 +336,7 @@ export default function BrackyWithESPNOdds() {
                     }}
                   >
                     {m.broadcast && <div>📺 {m.broadcast}</div>}
-                    <div>🕒 {formatTime(m.gametimeAt)}</div>
+                    <div>🕒 {m.espnStatus || formatTime(m.gametimeAt)}</div>
                   </div>
 
                   {/* Outcomes / Odds */}
