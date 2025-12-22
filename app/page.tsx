@@ -200,9 +200,10 @@ export default function BrackyWithESPNOdds() {
         return teamNames.some((name: string) => brackyName.includes(name));
       });
 
-      if (event && event.competitions?.[0]?.odds?.[0]) {
-        const oddsData = event.competitions[0].odds[0];
-        const competitors = event.competitions[0].competitors;
+      if (event && event.competitions?.[0]) {
+        const competition = event.competitions[0];
+        const oddsData = competition.odds?.[0];
+        const competitors = competition.competitors;
         const statusDetail = event.status?.type?.detail;
 
         setMarkets((prev) => {
@@ -213,37 +214,39 @@ export default function BrackyWithESPNOdds() {
           if (statusDetail) m.espnStatus = statusDetail;
 
           // Match outcomes to ESPN competitors
-          Object.values(m.outcomes).forEach((outcome) => {
-            const competitor = competitors.find(
-              (c: any) =>
-                outcome.name
-                  ?.toLowerCase()
-                  .includes(c.team.displayName.toLowerCase()) ||
-                outcome.shortName
-                  ?.toLowerCase()
-                  .includes(c.team.displayName.toLowerCase())
-            );
+          if (oddsData && competitors && m.outcomes) {
+            Object.values(m.outcomes).forEach((outcome) => {
+              const competitor = competitors.find(
+                (c: any) =>
+                  outcome.name
+                    ?.toLowerCase()
+                    .includes(c.team.displayName.toLowerCase()) ||
+                  outcome.shortName
+                    ?.toLowerCase()
+                    .includes(c.team.displayName.toLowerCase())
+              );
 
-            if (competitor) {
-              const homeAway = competitor.homeAway; // 'home' or 'away'
+              if (competitor) {
+                const homeAway = competitor.homeAway; // 'home' or 'away'
 
-              // Get moneyline from odds.moneyline.home.close.odds or odds.moneyline.away.close.odds
-              const moneylineValue =
-                oddsData.moneyline?.[homeAway]?.close?.odds;
-              const spreadValue = oddsData.spread?.[homeAway]?.close?.line;
-              const overUnderValue = oddsData.total?.close?.total;
+                // Get moneyline from odds.moneyline.home.close.odds or odds.moneyline.away.close.odds
+                const moneylineValue =
+                  oddsData.moneyline?.[homeAway]?.close?.odds;
+                const spreadValue = oddsData.spread?.[homeAway]?.close?.line;
+                const overUnderValue = oddsData.total?.close?.total;
 
-              outcome.espnOdds = {
-                spread: spreadValue ? parseFloat(spreadValue) : undefined,
-                moneyline: moneylineValue
-                  ? parseFloat(moneylineValue)
-                  : undefined,
-                overUnder: overUnderValue
-                  ? parseFloat(overUnderValue)
-                  : undefined,
-              };
-            }
-          });
+                outcome.espnOdds = {
+                  spread: spreadValue ? parseFloat(spreadValue) : undefined,
+                  moneyline: moneylineValue
+                    ? parseFloat(moneylineValue)
+                    : undefined,
+                  overUnder: overUnderValue
+                    ? parseFloat(overUnderValue)
+                    : undefined,
+                };
+              }
+            });
+          }
 
           return next;
         });
