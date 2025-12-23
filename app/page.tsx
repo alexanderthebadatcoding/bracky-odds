@@ -132,7 +132,7 @@ export default function BrackyWithESPNOdds() {
       } else if (category === "mls") {
         sport = "soccer/usa.1";
       } else if (category === "european-football" || category === "soccer") {
-        sport = "soccer/ita.super_cup";
+        sport = "soccer/eng.league_cup";
       } else {
         return; // Skip unsupported sports
       }
