@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
 type Outcome = {
   slug: string;
   name: string;
@@ -13,6 +12,7 @@ type Outcome = {
     moneyline?: number;
     overUnder?: number;
   };
+  winProbability?: number; // Added
   state?: string;
   primaryColor?: string;
   secondaryColor?: string;
@@ -31,6 +31,11 @@ type Market = {
   isThreadMarket?: boolean;
   isMatchup?: boolean;
   espnStatus?: string;
+  winProbabilities?: {
+    // Added
+    home?: number;
+    away?: number;
+  };
 };
 
 type GroupedMarkets = {
@@ -206,12 +211,29 @@ export default function BrackyWithESPNOdds() {
         const competitors = competition.competitors;
         const statusDetail = event.status?.type?.detail;
 
+        // Extract win percentages from situation if available
+        const homeWinPercentage =
+          competition.situation?.lastPlay?.probability?.homeWinPercentage;
+        const awayWinPercentage =
+          competition.situation?.lastPlay?.probability?.awayWinPercentage;
+
         setMarkets((prev) => {
           const next = structuredClone(prev);
           const m = next[category]?.[market.slug];
           if (!m?.outcomes) return next;
 
           if (statusDetail) m.espnStatus = statusDetail;
+
+          // Store win percentages at market level
+          if (
+            homeWinPercentage !== undefined ||
+            awayWinPercentage !== undefined
+          ) {
+            m.winProbabilities = {
+              home: homeWinPercentage,
+              away: awayWinPercentage,
+            };
+          }
 
           // Match outcomes to ESPN competitors
           if (oddsData && competitors && m.outcomes) {
@@ -412,7 +434,22 @@ export default function BrackyWithESPNOdds() {
                                   flexWrap: "wrap",
                                 }}
                               >
-                                {o.espnOdds.moneyline && (
+                                {/* Show live win probability if available, otherwise moneyline */}
+                                {o.winProbability !== undefined ? (
+                                  <div>
+                                    <span style={{ color: "white" }}>
+                                      ESPN Live:
+                                    </span>{" "}
+                                    <span
+                                      style={{
+                                        color: "#00ff00",
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      {o.winProbability.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                ) : o.espnOdds.moneyline ? (
                                   <div>
                                     <span style={{ color: "white" }}>
                                       ESPN ML:
@@ -428,8 +465,10 @@ export default function BrackyWithESPNOdds() {
                                       </span>
                                     )}
                                   </div>
-                                )}
-                                {diff !== null && (
+                                ) : null}
+
+                                {/* Show diff - compare against live probability if available, otherwise implied prob */}
+                                {diff !== null && !o.winProbability && (
                                   <div>
                                     <span style={{ color: "#666" }}>Diff:</span>{" "}
                                     <span
@@ -443,6 +482,34 @@ export default function BrackyWithESPNOdds() {
                                     </span>
                                   </div>
                                 )}
+
+                                {/* Show diff against live probability */}
+                                {o.winProbability !== undefined &&
+                                  brackyOdds && (
+                                    <div>
+                                      <span style={{ color: "#666" }}>
+                                        Diff:
+                                      </span>{" "}
+                                      <span
+                                        style={{
+                                          color:
+                                            brackyOdds - o.winProbability > 0
+                                              ? "#00ff00"
+                                              : "#ff0000",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        {brackyOdds - o.winProbability > 0
+                                          ? "+"
+                                          : ""}
+                                        {(
+                                          brackyOdds - o.winProbability
+                                        ).toFixed(1)}
+                                        %
+                                      </span>
+                                    </div>
+                                  )}
+
                                 {o.espnOdds.spread && (
                                   <div>
                                     <span style={{ color: "#666" }}>
