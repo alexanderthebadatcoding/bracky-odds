@@ -12,7 +12,8 @@ type Outcome = {
     moneyline?: number;
     overUnder?: number;
   };
-  winProbability?: number; // Added
+  winProbability?: number;
+  score?: number; // Added
   state?: string;
   primaryColor?: string;
   secondaryColor?: string;
@@ -409,6 +410,17 @@ export default function BrackyWithESPNOdds() {
                               >
                                 {o.shortName ?? o.name}
                               </span>
+                              {typeof o.score === "number" && (
+                                <span
+                                  style={{
+                                    fontSize: 16,
+                                    fontWeight: 700,
+                                    color: "#fff",
+                                  }}
+                                >
+                                  {o.score}
+                                </span>
+                              )}
                               {typeof o.odds === "number" && (
                                 <span
                                   style={{
