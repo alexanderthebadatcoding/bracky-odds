@@ -125,6 +125,19 @@ export default function BrackyWithESPNOdds() {
     return () => es.close();
   }, []);
 
+  const teamsMatchExactly = (espnTeams: string[], brackyTeams: string[]) => {
+    if (espnTeams.length !== 2 || brackyTeams.length !== 2) return false;
+
+    let matches = 0;
+
+    for (const e of espnTeams) {
+      const found = brackyTeams.some((b) => e.includes(b) || b.includes(e));
+      if (found) matches++;
+    }
+
+    return matches === 2;
+  };
+
   const fetchESPNOdds = async (market: Market, category: string) => {
     setLoadingOdds(true);
     try {
@@ -188,16 +201,8 @@ export default function BrackyWithESPNOdds() {
           console.log("ESPN Teams:", espnTeams);
           console.log("Bracky Parts:", brackyParts);
 
-          if (espnTeams.length === 2 && brackyParts.length === 2) {
-            // Check if both team names match (in either order)
-            const match1 =
-              espnTeams[0].includes(brackyParts[0]) ||
-              brackyParts[0].includes(espnTeams[0]);
-            const match2 =
-              espnTeams[1].includes(brackyParts[1]) ||
-              brackyParts[1].includes(espnTeams[1]);
-
-            if (match1 && match2) return true;
+          if (teamsMatchExactly(espnTeams, brackyParts)) {
+            return true;
           }
         }
 
