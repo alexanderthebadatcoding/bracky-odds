@@ -246,7 +246,7 @@ export default function BrackyWithESPNOdds() {
           }
 
           // Match outcomes to ESPN competitors
-          if (oddsData && competitors && m.outcomes) {
+          if (competitors && m.outcomes) {
             Object.values(m.outcomes).forEach((outcome) => {
               const competitor = competitors.find(
                 (c: any) =>
@@ -261,7 +261,7 @@ export default function BrackyWithESPNOdds() {
               if (competitor) {
                 const homeAway = competitor.homeAway; // 'home' or 'away'
 
-                // ✅ LIVE SCORE
+                // ✅ LIVE SCORE (always set if available)
                 if (competitor.score !== undefined) {
                   outcome.score = Number(competitor.score);
                 }
@@ -276,21 +276,23 @@ export default function BrackyWithESPNOdds() {
                           .awayWinPercentage;
                 }
 
-                // Get moneyline from odds.moneyline.home.close.odds or odds.moneyline.away.close.odds
-                const moneylineValue =
-                  oddsData.moneyline?.[homeAway]?.close?.odds;
-                const spreadValue = oddsData.spread?.[homeAway]?.close?.line;
-                const overUnderValue = oddsData.total?.close?.total;
+                // Only add odds if oddsData exists
+                if (oddsData) {
+                  const moneylineValue =
+                    oddsData.moneyline?.[homeAway]?.close?.odds;
+                  const spreadValue = oddsData.spread?.[homeAway]?.close?.line;
+                  const overUnderValue = oddsData.total?.close?.total;
 
-                outcome.espnOdds = {
-                  spread: spreadValue ? parseFloat(spreadValue) : undefined,
-                  moneyline: moneylineValue
-                    ? parseFloat(moneylineValue)
-                    : undefined,
-                  overUnder: overUnderValue
-                    ? parseFloat(overUnderValue)
-                    : undefined,
-                };
+                  outcome.espnOdds = {
+                    spread: spreadValue ? parseFloat(spreadValue) : undefined,
+                    moneyline: moneylineValue
+                      ? parseFloat(moneylineValue)
+                      : undefined,
+                    overUnder: overUnderValue
+                      ? parseFloat(overUnderValue)
+                      : undefined,
+                  };
+                }
               }
             });
           }
