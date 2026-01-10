@@ -170,7 +170,7 @@ export default function BrackyWithESPNOdds() {
               .toLowerCase()
               .replace(/\([^)]*\)/g, "")
               .replace(/#\d+/g, "")
-              .replace(/🇦-🇿/g, "") // remove flags (emoji range)
+              .replace(/\p{Extended_Pictographic}/gu, "")
               .replace(/[^\w\s]/g, " ") // remove punctuation
               .replace(/\b(fc|cf|sc|afc|club|calcio|ac)\b/g, "")
               .replace(/\b\d{4}\b/g, "") // remove 1909, 1899, etc
@@ -178,7 +178,8 @@ export default function BrackyWithESPNOdds() {
               .trim();
 
           // Extract team names from both
-          const splitTeams = (name: string) => name.split(/\s+(?:at|vs|v)\s+/);
+          const splitTeams = (name: string) =>
+            name.split(/\s+(?:at|vs|v)\s+|[-–]\s*/);
 
           const espnTeams = splitTeams(
             normalizeName(e.name ?? e.shortName ?? "")
