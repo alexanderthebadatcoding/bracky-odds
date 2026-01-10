@@ -252,6 +252,21 @@ export default function BrackyWithESPNOdds() {
               if (competitor) {
                 const homeAway = competitor.homeAway; // 'home' or 'away'
 
+                // ✅ LIVE SCORE
+                if (competitor.score !== undefined) {
+                  outcome.score = Number(competitor.score);
+                }
+
+                // ✅ LIVE WIN PROBABILITY (if available)
+                if (competition.situation?.lastPlay?.probability) {
+                  outcome.winProbability =
+                    homeAway === "home"
+                      ? competition.situation.lastPlay.probability
+                          .homeWinPercentage
+                      : competition.situation.lastPlay.probability
+                          .awayWinPercentage;
+                }
+
                 // Get moneyline from odds.moneyline.home.close.odds or odds.moneyline.away.close.odds
                 const moneylineValue =
                   oddsData.moneyline?.[homeAway]?.close?.odds;
