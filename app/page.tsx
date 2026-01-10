@@ -434,7 +434,7 @@ export default function BrackyWithESPNOdds() {
                               >
                                 {o.shortName ?? o.name}
                               </span>
-                              {typeof o.score === "number" && (
+                              {o.score !== undefined && (
                                 <span
                                   style={{
                                     fontSize: 16,
