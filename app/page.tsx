@@ -154,7 +154,7 @@ export default function BrackyWithESPNOdds() {
       } else if (category === "mls") {
         sport = "soccer/usa.1";
       } else if (category === "european-football" || category === "soccer") {
-        sport = "soccer/eng.1";
+        sport = "soccer/eng.fa;
       } else {
         return; // Skip unsupported sports
       }
