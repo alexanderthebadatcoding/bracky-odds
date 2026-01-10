@@ -69,7 +69,7 @@ export default function BrackyWithESPNOdds() {
               const category = m.category ?? "other";
               // Filter out NFL Playoff Race and other group markets
               if (
-                m.groupSlug === "ncaa-football-2025-26-cfp-champion" ||
+                m.slug === "ncaa-football-2025-26-cfp-champion" ||
                 m.isThreadMarket
               ) {
                 continue;
