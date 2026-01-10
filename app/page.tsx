@@ -181,8 +181,8 @@ export default function BrackyWithESPNOdds() {
             normalizeName(e.name ?? e.shortName ?? "")
           );
           const brackyParts = splitTeams(normalizeName(market.name));
-          // console.log("ESPN Teams:", espnTeams);
-          // console.log("Bracky Parts:", brackyParts);
+          console.log("ESPN Teams:", espnTeams);
+          console.log("Bracky Parts:", brackyParts);
 
           if (espnTeams.length === 2 && brackyParts.length === 2) {
             // Check if both team names match (in either order)
