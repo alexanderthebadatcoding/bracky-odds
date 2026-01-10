@@ -250,23 +250,21 @@ export default function BrackyWithESPNOdds() {
             Object.values(m.outcomes).forEach((outcome) => {
               const competitor = competitors.find(
                 (c: any) =>
-                  outcome.name
-                    ?.toLowerCase()
-                    .includes(c.team.displayName.toLowerCase()) ||
-                  outcome.shortName
-                    ?.toLowerCase()
-                    .includes(c.team.displayName.toLowerCase())
+                  (outcome.name?.toLowerCase() ===
+                    c.team.displayName.toLowerCase() ||
+                    outcome.shortName?.toLowerCase() ===
+                      c.team.displayName.toLowerCase()) &&
+                  // ✅ Only match if the game is live
+                  c.score !== undefined
               );
 
               if (competitor) {
-                const homeAway = competitor.homeAway; // 'home' or 'away'
+                const homeAway = competitor.homeAway;
 
-                // ✅ LIVE SCORE (always set if available)
-                if (competitor.score !== undefined) {
-                  outcome.score = Number(competitor.score);
-                }
+                // ✅ LIVE SCORE
+                outcome.score = Number(competitor.score);
 
-                // ✅ LIVE WIN PROBABILITY (if available)
+                // ✅ LIVE WIN PROBABILITY
                 if (competition.situation?.lastPlay?.probability) {
                   outcome.winProbability =
                     homeAway === "home"
@@ -276,7 +274,7 @@ export default function BrackyWithESPNOdds() {
                           .awayWinPercentage;
                 }
 
-                // Only add odds if oddsData exists
+                // ✅ Only set odds if available
                 if (oddsData) {
                   const moneylineValue =
                     oddsData.moneyline?.[homeAway]?.close?.odds;
